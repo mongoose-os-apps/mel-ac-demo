@@ -1,0 +1,47 @@
+author: d4rkmen <darkmen@i.ua>
+description: Mongoose OS MEL-AC demo
+version: 1.0
+platform: esp8266
+
+libs_version: ${mos.version}
+modules_version: ${mos.version}
+mongoose_os_version: ${mos.version}
+
+tags:
+  - c
+
+sources:
+  - src
+
+includes:
+  - include
+
+config_schema:
+  - ["app", "o", {title: "APP settings"}]
+  - ["app.button_gpio", "i", {title: "GPIO for Service button"}]
+  - ["app.button_gpio", 0]
+  - ["app.led_gpio", 2]
+  - ["debug.stdout_uart", -1] # UART used for HVAC i/o
+  - ["debug.stderr_uart", -1] # UART used for HVAC i/o
+  - ["wifi.ap.enable", false]
+  - ["wifi.sta.enable", true]
+  - ["wifi.sta.ssid", "your_wifi"]
+  - ["wifi.sta.pass", "your_pass"]
+# for debug log only
+#  - ["mqtt.server", "your_broker_ip:1883"]
+#  - ["mqtt.enable", true] 
+#  - ["debug.stderr_topic","/device/log/err"]
+#  - ["debug.stdout_topic","/device/log/out"]
+# for UDP log only
+#  - ["debug.udp_log_addr","your_host_ip:1993"]
+
+libs:
+  - origin: https://github.com/mongoose-os-libs/http-server
+  - origin: https://github.com/mongoose-os-libs/rpc-ws
+  - origin: https://github.com/mongoose-os-libs/wifi
+# for mqtt log only
+#  - origin: https://github.com/mongoose-os-libs/rpc-mqtt
+  - origin: https://github.com/mongoose-os-libs/mel-ac
+
+## Used by the mos tool to catch mos binaries incompatible with this file format
+manifest_version: 2020-08-02
