@@ -67,84 +67,26 @@ static void set_params_handler(struct mg_rpc_request_info *ri, void *cb_arg,
 
   struct mgos_mel_ac_params params;
   mgos_mel_ac_get_params(mel, &params);
-  // memset(&params, 0, sizeof(struct mgos_mel_ac_params));
 
-  bool success = true;
+  bool success = true; // true - if no errors
   if (json_scanf(args.p, args.len, "{power: %d}", &params.power) == 1) {
-    switch (params.power) {
-      case MGOS_MEL_AC_PARAM_POWER_OFF:
-      case MGOS_MEL_AC_PARAM_POWER_ON:
-        mgos_mel_ac_set_power(mel, params.power);
-        break;
-      default:
-        success = false;
-    }
+    if (!mgos_mel_ac_set_power(mel, params.power)) success = false;
   }
   if (json_scanf(args.p, args.len, "{mode: %d}", &params.mode) == 1) {
-    switch (params.mode) {
-      case MGOS_MEL_AC_PARAM_MODE_CURRENT:
-      case MGOS_MEL_AC_PARAM_MODE_AUTO:
-      case MGOS_MEL_AC_PARAM_MODE_COOL:
-      case MGOS_MEL_AC_PARAM_MODE_DRY:
-      case MGOS_MEL_AC_PARAM_MODE_FAN:
-      case MGOS_MEL_AC_PARAM_MODE_HEAT:
-        mgos_mel_ac_set_mode(mel, params.mode);
-        break;
-      default:
-        success = false;
-    }
+    if (!mgos_mel_ac_set_mode(mel, params.mode)) success = false;
   }
   if (json_scanf(args.p, args.len, "{setpoint: %f}", &params.setpoint) == 1) {
-    if (params.setpoint > 31 || params.setpoint < 10)
-      success = false;
-    else
-      mgos_mel_ac_set_setpoint(mel, params.setpoint);
+    if (!mgos_mel_ac_set_setpoint(mel, params.setpoint)) success = false;
   }
   if (json_scanf(args.p, args.len, "{fan: %d}", &params.fan) == 1) {
-    switch (params.fan) {
-      case MGOS_MEL_AC_PARAM_FAN_AUTO:
-      case MGOS_MEL_AC_PARAM_FAN_HIGH:
-      case MGOS_MEL_AC_PARAM_FAN_LOW:
-      case MGOS_MEL_AC_PARAM_FAN_MED:
-      case MGOS_MEL_AC_PARAM_FAN_QUIET:
-      case MGOS_MEL_AC_PARAM_FAN_TURBO:
-        mgos_mel_ac_set_fan(mel, params.fan);
-        break;
-      default:
-        success = false;
-    }
+    if (!mgos_mel_ac_set_fan(mel, params.fan)) success = false;
   }
   if (json_scanf(args.p, args.len, "{vane_vert: %d}", &params.vane_vert) == 1) {
-    switch (params.vane_vert) {
-      case MGOS_MEL_AC_PARAM_VANE_VERT_AUTO:
-      case MGOS_MEL_AC_PARAM_VANE_VERT_1:
-      case MGOS_MEL_AC_PARAM_VANE_VERT_2:
-      case MGOS_MEL_AC_PARAM_VANE_VERT_3:
-      case MGOS_MEL_AC_PARAM_VANE_VERT_4:
-      case MGOS_MEL_AC_PARAM_VANE_VERT_5:
-      case MGOS_MEL_AC_PARAM_VANE_VERT_SWING:
-        mgos_mel_ac_set_vane_vert(mel, params.vane_vert);
-        break;
-      default:
-        success = false;
-    }
+    if (!mgos_mel_ac_set_vane_vert(mel, params.vane_vert)) success = false;
   }
   if (json_scanf(args.p, args.len, "{vane_horiz: %d}", &params.vane_horiz) ==
       1) {
-    switch (params.vane_horiz) {
-      case MGOS_MEL_AC_PARAM_VANE_HORIZ_AUTO:
-      case MGOS_MEL_AC_PARAM_VANE_HORIZ_CENTER:
-      case MGOS_MEL_AC_PARAM_VANE_HORIZ_LEFT:
-      case MGOS_MEL_AC_PARAM_VANE_HORIZ_LEFTEST:
-      case MGOS_MEL_AC_PARAM_VANE_HORIZ_LEFTRIGHT:
-      case MGOS_MEL_AC_PARAM_VANE_HORIZ_RIGHT:
-      case MGOS_MEL_AC_PARAM_VANE_HORIZ_RIGHTEST:
-      case MGOS_MEL_AC_PARAM_VANE_HORIZ_SWING:
-        mgos_mel_ac_set_vane_horiz(mel, params.vane_horiz);
-        break;
-      default:
-        success = false;
-    }
+    if (!mgos_mel_ac_set_vane_horiz(mel, params.vane_horiz)) success = false;
   }
   // Not implemented
   // if (json_scanf(args.p, args.len, "{isee: %d}", &params.isee) == 1) {
@@ -232,7 +174,7 @@ static void service_button_handler(int pin, void *arg) {
 }
 
 static void mgos_mel_ac_handler(struct mgos_mel_ac *mel, int ev, void *ev_data,
-                             void *user_data) {
+                                void *user_data) {
   switch (ev) {
     case MGOS_MEL_AC_EV_INITIALIZED:
       LOG(LL_INFO, ("MEL init done"));
