@@ -28,17 +28,17 @@
 static void get_params_handler(struct mg_rpc_request_info *ri, void *cb_arg,
                                struct mg_rpc_frame_info *fi,
                                struct mg_str args) {
-  struct mgos_mel_ac *mel = (struct mgos_mel_ac *) cb_arg;
+  // struct mgos_mel_ac *mel = (struct mgos_mel_ac *) cb_arg;
   struct mbuf fb;
   struct json_out out = JSON_OUT_MBUF(&fb);
 
   mbuf_init(&fb, MGOS_MEL_AC_JSON_SIZE);
 
   struct mgos_mel_ac_params params;
-  bool connected = mgos_mel_ac_connected(mel);
-  bool operating = mgos_mel_ac_get_operating(mel);
-  float room = mgos_mel_ac_get_room_temperature(mel);
-  mgos_mel_ac_get_params(mel, &params);
+  bool connected = mgos_mel_ac_get_connected();
+  bool operating = mgos_mel_ac_get_operating();
+  float room = mgos_mel_ac_get_room_temperature();
+  mgos_mel_ac_get_params(&params);
 
   json_printf(
       &out,
@@ -59,34 +59,33 @@ static void get_params_handler(struct mg_rpc_request_info *ri, void *cb_arg,
 static void set_params_handler(struct mg_rpc_request_info *ri, void *cb_arg,
                                struct mg_rpc_frame_info *fi,
                                struct mg_str args) {
-  struct mgos_mel_ac *mel = (struct mgos_mel_ac *) cb_arg;
   struct mbuf fb;
   struct json_out out = JSON_OUT_MBUF(&fb);
 
   mbuf_init(&fb, MGOS_MEL_AC_JSON_SIZE);
 
   struct mgos_mel_ac_params params;
-  mgos_mel_ac_get_params(mel, &params);
+  mgos_mel_ac_get_params(&params);
 
-  bool success = true; // true - if no errors
+  bool success = true;  // true - if no errors
   if (json_scanf(args.p, args.len, "{power: %d}", &params.power) == 1) {
-    if (!mgos_mel_ac_set_power(mel, params.power)) success = false;
+    if (!mgos_mel_ac_set_power(params.power)) success = false;
   }
   if (json_scanf(args.p, args.len, "{mode: %d}", &params.mode) == 1) {
-    if (!mgos_mel_ac_set_mode(mel, params.mode)) success = false;
+    if (!mgos_mel_ac_set_mode(params.mode)) success = false;
   }
   if (json_scanf(args.p, args.len, "{setpoint: %f}", &params.setpoint) == 1) {
-    if (!mgos_mel_ac_set_setpoint(mel, params.setpoint)) success = false;
+    if (!mgos_mel_ac_set_setpoint(params.setpoint)) success = false;
   }
   if (json_scanf(args.p, args.len, "{fan: %d}", &params.fan) == 1) {
-    if (!mgos_mel_ac_set_fan(mel, params.fan)) success = false;
+    if (!mgos_mel_ac_set_fan(params.fan)) success = false;
   }
   if (json_scanf(args.p, args.len, "{vane_vert: %d}", &params.vane_vert) == 1) {
-    if (!mgos_mel_ac_set_vane_vert(mel, params.vane_vert)) success = false;
+    if (!mgos_mel_ac_set_vane_vert(params.vane_vert)) success = false;
   }
   if (json_scanf(args.p, args.len, "{vane_horiz: %d}", &params.vane_horiz) ==
       1) {
-    if (!mgos_mel_ac_set_vane_horiz(mel, params.vane_horiz)) success = false;
+    if (!mgos_mel_ac_set_vane_horiz(params.vane_horiz)) success = false;
   }
   // Not implemented
   // if (json_scanf(args.p, args.len, "{isee: %d}", &params.isee) == 1) {
@@ -168,13 +167,12 @@ static void wifi_cb(int ev, void *evd, void *arg) {
 }
 #endif /* MGOS_HAVE_WIFI */
 
-static void service_button_handler(int pin, void *arg) {
-  struct mgos_mel_ac *mel = (struct mgos_mel_ac *) arg;
-  if (!mel) return;
-}
+// static void service_button_handler(int pin, void *arg) {
+//   struct mgos_mel_ac *mel = (struct mgos_mel_ac *) arg;
+//   if (!mel) return;
+// }
 
-static void mgos_mel_ac_handler(struct mgos_mel_ac *mel, int ev, void *ev_data,
-                                void *user_data) {
+static void mel_cb(int ev, void *ev_data, void *arg) {
   switch (ev) {
     case MGOS_MEL_AC_EV_INITIALIZED:
       LOG(LL_INFO, ("MEL init done"));
@@ -212,50 +210,36 @@ static void mgos_mel_ac_handler(struct mgos_mel_ac *mel, int ev, void *ev_data,
       LOG(LL_ERROR, ("error: packet crc"));
       break;
     case MGOS_MEL_AC_EV_TIMER:
+      // mgos_wdt_feed();
       // LOG(LL_INFO, ("MEL timer"));
       break;
     default:
       LOG(LL_WARN, ("event: %d", ev));
   }
   (void) ev_data;
-  (void) user_data;
 }
 
 enum mgos_app_init_result mgos_app_init(void) {
-  struct mgos_mel_ac *mel = NULL;
-  struct mgos_mel_ac_cfg cfg;
-
-  mgos_mel_ac_config_set_defaults(&cfg);
-  cfg.uart_no = 0;
-  cfg.uart_baud_rate = 2400;
-  cfg.handler = mgos_mel_ac_handler;
-
-  if (NULL == (mel = mgos_mel_ac_create(&cfg))) {
-    LOG(LL_ERROR, ("Failed to create MEL object, thats fatal"));
-    return false;
-  }
-
-  LOG(LL_INFO, ("Starting MEL HVAC service..."));
-  mgos_mel_ac_svc_init(mel, 250);
-
   struct mg_rpc *c = mgos_rpc_get_global();
-  mg_rpc_add_handler(c, "MEL-AC.GetParams", "{}", get_params_handler, mel);
+  mg_rpc_add_handler(c, "MEL-AC.GetParams", "{}", get_params_handler, NULL);
   mg_rpc_add_handler(c, "MEL-AC.SetParams",
                      "{power: %d, mode: %d, setpoint: %.1f, fan: %d, "
                      "vane_vert: %d, vane_horiz: %d}",
-                     set_params_handler, mel);
+                     set_params_handler, NULL);
   // Register service button, just in case
-  mgos_gpio_set_mode(mgos_sys_config_get_app_button_gpio(),
-                     MGOS_GPIO_MODE_INPUT);
-  mgos_gpio_set_button_handler(mgos_sys_config_get_app_button_gpio(),
-                               MGOS_GPIO_PULL_UP, MGOS_GPIO_INT_EDGE_POS, 50,
-                               service_button_handler, mel);
+  //   mgos_gpio_set_mode(mgos_sys_config_get_app_button_gpio(),
+  //                      MGOS_GPIO_MODE_INPUT);
+  //   mgos_gpio_set_button_handler(mgos_sys_config_get_app_button_gpio(),
+  //                                MGOS_GPIO_PULL_UP, MGOS_GPIO_INT_EDGE_POS,
+  //                                50, service_button_handler, mel);
+  /* MEL-AC events */
+  mgos_event_add_group_handler(MGOS_EVENT_GRP_MEL_AC, mel_cb, NULL);
 
   /* Network connectivity events */
-  mgos_event_add_group_handler(MGOS_EVENT_GRP_NET, net_cb, mel);
+  mgos_event_add_group_handler(MGOS_EVENT_GRP_NET, net_cb, NULL);
 
 #ifdef MGOS_HAVE_WIFI
-  mgos_event_add_group_handler(MGOS_WIFI_EV_BASE, wifi_cb, mel);
+  mgos_event_add_group_handler(MGOS_EVENT_GRP_WIFI, wifi_cb, NULL);
 #endif
   return MGOS_APP_INIT_SUCCESS;
 }

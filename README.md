@@ -4,7 +4,7 @@ Mitsubishi Electic AirCo and HeapPump control using Mongoose OS [MEL-AC](https:/
 
 ## Install
 
-* Set your wifi credentials and debug config (if required) in file
+* Set your wifi credentials and debug config (if required) and `"mel_ac.uart_no"` in file
 ```
 mos.yml 
 ```

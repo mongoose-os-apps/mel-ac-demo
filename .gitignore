@@ -1,2 +1,6 @@
+deps/
+_deps/
 build/
 .vscode/
+mos.yml.public
+mos.yml.local
