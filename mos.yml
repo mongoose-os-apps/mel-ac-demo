@@ -1,7 +1,6 @@
 author: d4rkmen <darkmen@i.ua>
 description: Mongoose OS MEL-AC demo
 version: 1.1
-platform: esp8266
 
 libs_version: ${mos.version}
 modules_version: ${mos.version}
@@ -38,13 +37,13 @@ config_schema:
   - ["mel_ac.uart_no", 0]
   - ["mel_ac.uart_baud_rate", 2400]
   - ["mel_ac.period_ms", 250]
+  - ["mel_ac.rpc_enable", true]
 
 libs:
   - origin: https://github.com/mongoose-os-libs/http-server
-  - origin: https://github.com/mongoose-os-libs/rpc-ws
   - origin: https://github.com/mongoose-os-libs/wifi
-# for mqtt log only
-#  - origin: https://github.com/mongoose-os-libs/rpc-mqtt
+  - origin: https://github.com/mongoose-os-libs/rpc-ws
+  - origin: https://github.com/mongoose-os-libs/rpc-mqtt
   - origin: https://github.com/mongoose-os-libs/mel-ac
 
 ## Used by the mos tool to catch mos binaries incompatible with this file format

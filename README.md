@@ -1,25 +1,18 @@
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)  [![Gitter](https://badges.gitter.im/cesanta/mongoose-os.svg)](https://gitter.im/cesanta/mongoose-os?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 # MEL-AC Demo App
 
 Mitsubishi Electic AirCo and HeapPump control using Mongoose OS [MEL-AC](https://github.com/mongoose-os-libs/mel-ac) library
 
 ## Install
 
-* Set your wifi credentials and debug config (if required) and `"mel_ac.uart_no"` in file
-```
-mos.yml 
-```
-* Build with 
-```
-$ mos build
-```
-* Flash with 
-```
-$ mos flash
-```
+* Set your wifi credentials, debug config (if required) and `mel_ac.uart_no` in file `mos.yml`
+* Build with `mos build`
+* Flash with `mos flash`
 
 ## Read current params from HVAC
 
-Reading is performed by ***Mongoose OS*** RPC. Currently enabled HTTP and WS, but MQTT or any other RPC channel could be added
+Reading is performed by ***Mongoose OS*** RPC `mel_ac.rpc_enable`. Currently enabled HTTP,WS and MQTT, but any other RPC channel could be added
 
 ### WebSockets
 

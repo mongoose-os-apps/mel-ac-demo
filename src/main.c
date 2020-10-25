@@ -21,90 +21,6 @@
 #endif
 #include "frozen.h"
 #include "mgos_mel_ac.h"
-#include "mgos_rpc.h"
-
-#define MGOS_MEL_AC_JSON_SIZE 200
-
-static void get_params_handler(struct mg_rpc_request_info *ri, void *cb_arg,
-                               struct mg_rpc_frame_info *fi,
-                               struct mg_str args) {
-  // struct mgos_mel_ac *mel = (struct mgos_mel_ac *) cb_arg;
-  struct mbuf fb;
-  struct json_out out = JSON_OUT_MBUF(&fb);
-
-  mbuf_init(&fb, MGOS_MEL_AC_JSON_SIZE);
-
-  struct mgos_mel_ac_params params;
-  bool connected = mgos_mel_ac_get_connected();
-  bool operating = mgos_mel_ac_get_operating();
-  float room = mgos_mel_ac_get_room_temperature();
-  mgos_mel_ac_get_params(&params);
-
-  json_printf(
-      &out,
-      "{connected: %B, power: %d, mode: %d, setpoint: %.1f, fan: %d, "
-      "vane_vert: %d, vane_horiz: %d, isee: %B, operating: %B, room: %.1f}",
-      connected, params.power, params.mode, params.setpoint, params.fan,
-      params.vane_vert, params.vane_horiz, params.isee, operating, room);
-
-  mg_rpc_send_responsef(ri, "%.*s", fb.len, fb.buf);
-  ri = NULL;
-
-  mbuf_free(&fb);
-
-  (void) cb_arg;
-  (void) fi;
-}
-
-static void set_params_handler(struct mg_rpc_request_info *ri, void *cb_arg,
-                               struct mg_rpc_frame_info *fi,
-                               struct mg_str args) {
-  struct mbuf fb;
-  struct json_out out = JSON_OUT_MBUF(&fb);
-
-  mbuf_init(&fb, MGOS_MEL_AC_JSON_SIZE);
-
-  struct mgos_mel_ac_params params;
-  mgos_mel_ac_get_params(&params);
-
-  bool success = true;  // true - if no errors
-  if (json_scanf(args.p, args.len, "{power: %d}", &params.power) == 1) {
-    if (!mgos_mel_ac_set_power(params.power)) success = false;
-  }
-  if (json_scanf(args.p, args.len, "{mode: %d}", &params.mode) == 1) {
-    if (!mgos_mel_ac_set_mode(params.mode)) success = false;
-  }
-  if (json_scanf(args.p, args.len, "{setpoint: %f}", &params.setpoint) == 1) {
-    if (!mgos_mel_ac_set_setpoint(params.setpoint)) success = false;
-  }
-  if (json_scanf(args.p, args.len, "{fan: %d}", &params.fan) == 1) {
-    if (!mgos_mel_ac_set_fan(params.fan)) success = false;
-  }
-  if (json_scanf(args.p, args.len, "{vane_vert: %d}", &params.vane_vert) == 1) {
-    if (!mgos_mel_ac_set_vane_vert(params.vane_vert)) success = false;
-  }
-  if (json_scanf(args.p, args.len, "{vane_horiz: %d}", &params.vane_horiz) ==
-      1) {
-    if (!mgos_mel_ac_set_vane_horiz(params.vane_horiz)) success = false;
-  }
-  // Not implemented
-  // if (json_scanf(args.p, args.len, "{isee: %d}", &params.isee) == 1) {
-  // 	mgos_mel_ac_set_isee(mel, params.isee);
-  // }
-  // Sending back changes made
-  json_printf(&out,
-              "{success: %B, power: %d, mode: %d, setpoint: %.1f, fan: %d, "
-              "vane_vert: %d, vane_horiz: %d}",
-              success, params.power, params.mode, params.setpoint, params.fan,
-              params.vane_vert, params.vane_horiz);
-  mg_rpc_send_responsef(ri, "%.*s", fb.len, fb.buf);
-  ri = NULL;
-
-  mbuf_free(&fb);
-
-  (void) cb_arg;
-  (void) fi;
-}
 
 static void net_cb(int ev, void *evd, void *arg) {
   switch (ev) {
@@ -220,12 +136,6 @@ static void mel_cb(int ev, void *ev_data, void *arg) {
 }
 
 enum mgos_app_init_result mgos_app_init(void) {
-  struct mg_rpc *c = mgos_rpc_get_global();
-  mg_rpc_add_handler(c, "MEL-AC.GetParams", "{}", get_params_handler, NULL);
-  mg_rpc_add_handler(c, "MEL-AC.SetParams",
-                     "{power: %d, mode: %d, setpoint: %.1f, fan: %d, "
-                     "vane_vert: %d, vane_horiz: %d}",
-                     set_params_handler, NULL);
   // Register service button, just in case
   //   mgos_gpio_set_mode(mgos_sys_config_get_app_button_gpio(),
   //                      MGOS_GPIO_MODE_INPUT);
