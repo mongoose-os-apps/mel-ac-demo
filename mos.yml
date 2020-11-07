@@ -17,9 +17,9 @@ includes:
 
 config_schema:
   - ["app", "o", {title: "APP settings"}]
-  - ["app.button_gpio", "i", {title: "GPIO for Service button"}]
-  - ["app.button_gpio", 0]
-  - ["app.led_gpio", 2]
+  - ["pins", "o", {title: "Pins layout"}]
+  - ["pins.led", "i", -1, {title: "LED GPIO pin"}]
+  - ["pins.button", "i", -1, {title: "Button GPIO pin"}]
   - ["debug.stdout_uart", -1] # UART used for HVAC i/o
   - ["debug.stderr_uart", -1] # UART used for HVAC i/o
   - ["wifi.ap.enable", false]
@@ -38,6 +38,18 @@ config_schema:
   - ["mel_ac.uart_baud_rate", 2400]
   - ["mel_ac.period_ms", 250]
   - ["mel_ac.rpc_enable", true]
+
+conds:
+  - when: mos.platform == "esp8266"
+    apply:
+      config_schema:
+        - ["pins.led", 2]
+        - ["pins.button", 0]
+  - when: mos.platform == "esp32"
+    apply:
+      config_schema:
+        - ["pins.led", 2]
+        - ["pins.button", 0]
 
 libs:
   - origin: https://github.com/mongoose-os-libs/http-server
