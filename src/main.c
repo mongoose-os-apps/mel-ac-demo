@@ -119,9 +119,6 @@ static void mel_cb(int ev, void *ev_data, void *arg) {
     case MGOS_MEL_AC_EV_PARAMS_SET:
       LOG(LL_INFO, ("new params applied by HVAC"));
       break;
-    case MGOS_MEL_AC_EV_RX_COUNT:
-      LOG(LL_DEBUG, ("rx_count: %d", *(size_t *) ev_data));
-      break;
     case MGOS_MEL_AC_EV_PACKET_READ_ERROR:
       LOG(LL_ERROR, ("error: packet crc"));
       break;
